@@ -1,0 +1,44 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "data": {
+          "host": "Host",
+          "api_key": "API Key",
+          "enablement_token": "The API key provided is an enablement token and should be used to request a new API key from the board. If you have already performed this step in the past, here or elsewhere, it is strongly encouraged that you use the existing API key. Otherwise, any attempt to read or write with old API keys will fail."
+        }
+      },
+      "api_key": {
+        "data": {
+          "api_key": "API Key",
+          "enablement_token": "The API key provided is an enablement token and should be used to request a new API key from the board. If you have already performed this step in the past, here or elsewhere, it is strongly encouraged that you use the existing API key. Otherwise, any attempt to read or write with old API keys will fail."
+        }
+      },
+      "reauth_confirm": {
+        "data": {
+          "api_key": "API Key",
+          "enablement_token": "The API key provided is an enablement token and should be used to request a new API key from the board. If you have already performed this step in the past, here or elsewhere, it is strongly encouraged that you use the existing API key. Otherwise, any attempt to read or write with old API keys will fail."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect",
+      "invalid_api_key": "Invalid API key",
+      "invalid_host": "Invalid hostname or IP address",
+      "timeout_connect": "Timeout establishing connection",
+      "unknown": "Unexpected error"
+    },
+    "abort": {
+      "already_configured": "Device is already configured"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "model": "Select your Vestaboard model to change the image that is generated."
+        }
+      }
+    }
+  }
+}

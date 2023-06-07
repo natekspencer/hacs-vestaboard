@@ -1,0 +1,46 @@
+message:
+  name: Send message
+  description: Send a message to a Vestaboard.
+  fields:
+    device_id:
+      name: Device
+      description: The Vestaboard to send the message to.
+      required: true
+      selector:
+        device:
+          integration: vestaboard
+          multiple: true
+    message:
+      name: Message
+      description: The message to send.
+      required: true
+      selector:
+        text:
+    align:
+      name: Align
+      description: Horizontal alignment of text. Optional, default=center
+      example: left
+      selector:
+        select:
+          options:
+            - "left"
+            - "center"
+            - "right"
+    valign:
+      name: Valign
+      description: Vertical alignment of text. Optional, default=middle
+      example: top
+      selector:
+        select:
+          options:
+            - "top"
+            - "middle"
+            - "bottom"
+    decorator:
+      name: Decorator
+      description: A decorator to be used with the text. Optional
+      example: music
+      selector:
+        select:
+          options:
+            - "music"

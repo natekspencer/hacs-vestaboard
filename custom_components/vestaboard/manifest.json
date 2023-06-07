@@ -1,0 +1,14 @@
+{
+  "domain": "vestaboard",
+  "name": "Vestaboard",
+  "codeowners": ["@natekspencer"],
+  "config_flow": true,
+  "dhcp": [{ "macaddress": "4C93A60*" }],
+  "documentation": "https://github.com/natekspencer/hacs-vestaboard",
+  "integration_type": "device",
+  "iot_class": "local_poll",
+  "issue_tracker": "https://github.com/natekspencer/hacs-vestaboard/issues",
+  "loggers": ["custom_components.vestaboard", "vesta"],
+  "requirements": ["vesta==0.10.0"],
+  "version": "2023.6.0"
+}

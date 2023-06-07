@@ -1,0 +1,44 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "data": {
+          "host": "[%key:common::config_flow::data::host%]",
+          "api_key": "[%key:common::config_flow::data::api_key%]",
+          "enablement_token": "The API key provided is an enablement token and should be used to request a new API key from the board. If you have already performed this step in the past, here or elsewhere, it is strongly encouraged that you use the existing API key. Otherwise, any attempt to read or write with old API keys will fail."
+        }
+      },
+      "api_key": {
+        "data": {
+          "api_key": "[%key:common::config_flow::data::api_key%]",
+          "enablement_token": "The API key provided is an enablement token and should be used to request a new API key from the board. If you have already performed this step in the past, here or elsewhere, it is strongly encouraged that you use the existing API key. Otherwise, any attempt to read or write with old API keys will fail."
+        }
+      },
+      "reauth_confirm": {
+        "data": {
+          "api_key": "[%key:common::config_flow::data::api_key%]",
+          "enablement_token": "The API key provided is an enablement token and should be used to request a new API key from the board. If you have already performed this step in the past, here or elsewhere, it is strongly encouraged that you use the existing API key. Otherwise, any attempt to read or write with old API keys will fail."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
+      "invalid_api_key": "[%key:common::config_flow::error::invalid_api_key%]",
+      "invalid_host": "[%key:common::config_flow::error::invalid_host%]",
+      "timeout_connect": "[%key:common::config_flow::error::timeout_connect%]",
+      "unknown": "[%key:common::config_flow::error::unknown%]"
+    },
+    "abort": {
+      "already_configured": "[%key:common::config_flow::abort::already_configured_device%]"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "model": "Select your Vestaboard model to change the image that is generated."
+        }
+      }
+    }
+  }
+}
