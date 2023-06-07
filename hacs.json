@@ -1,5 +1,4 @@
 {
   "name": "Vestaboard",
-  "render_readme": true,
-  "domains": ["camera", "notify", "sensor"]
+  "render_readme": true
 }
