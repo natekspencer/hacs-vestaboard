@@ -18,17 +18,23 @@ from homeassistant.helpers.schema_config_entry_flow import (
     SchemaFlowFormStep,
     SchemaOptionsFlowHandler,
 )
+from homeassistant.helpers.selector import TimeSelector
 
-from .const import CONF_MODEL, DOMAIN, MODEL_BLACK, MODEL_WHITE
+from .const import (
+    CONF_ENABLEMENT_TOKEN,
+    CONF_MODEL,
+    CONF_QUIET_END,
+    CONF_QUIET_START,
+    DOMAIN,
+    MODEL_BLACK,
+    MODEL_WHITE,
+)
 from .helpers import construct_message, create_client
 
 _LOGGER = logging.getLogger(__name__)
 
 STEP_API_KEY_SCHEMA = vol.Schema(
-    {
-        vol.Required(CONF_API_KEY): str,
-        vol.Optional("enablement_token"): bool,
-    }
+    {vol.Required(CONF_API_KEY): str, vol.Optional(CONF_ENABLEMENT_TOKEN): bool}
 )
 STEP_USER_DATA_SCHEMA = vol.Schema({vol.Required(CONF_HOST): str}).extend(
     STEP_API_KEY_SCHEMA.schema
@@ -37,12 +43,12 @@ OPTIONS_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_MODEL, default=MODEL_BLACK): vol.In(
             {MODEL_BLACK: "Flagship Black", MODEL_WHITE: "Vestaboard White"}
-        )
+        ),
+        vol.Optional(CONF_QUIET_START): TimeSelector(),
+        vol.Optional(CONF_QUIET_END): TimeSelector(),
     }
 )
-OPTIONS_FLOW = {
-    "init": SchemaFlowFormStep(OPTIONS_SCHEMA),
-}
+OPTIONS_FLOW = {"init": SchemaFlowFormStep(OPTIONS_SCHEMA)}
 
 
 class VestaboardConfigFlow(ConfigFlow, domain=DOMAIN):
@@ -85,6 +91,7 @@ class VestaboardConfigFlow(ConfigFlow, domain=DOMAIN):
     ) -> FlowResult:
         """Perform reauth upon an API key error."""
         self.host = user_input[CONF_HOST]
+        self.api_key = user_input[CONF_API_KEY]
         return await self.async_step_reauth_confirm()
 
     async def async_step_reauth_confirm(
@@ -124,6 +131,9 @@ class VestaboardConfigFlow(ConfigFlow, domain=DOMAIN):
                     data=data,
                 )
 
+        schema = self.add_suggested_values_to_schema(
+            schema, {CONF_API_KEY: self.api_key}
+        )
         return self.async_show_form(step_id=step_id, data_schema=schema, errors=errors)
 
     async def validate_client(self, user_input: dict[str, Any]) -> dict[str, str]:

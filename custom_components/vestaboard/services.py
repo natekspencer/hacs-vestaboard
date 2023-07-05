@@ -42,7 +42,8 @@ def async_setup_services(hass: HomeAssistant) -> None:
         rows = construct_message(**{CONF_MESSAGE: ""} | call.data)
         for device_id in call.data[CONF_DEVICE_ID]:
             coordinator = async_get_coordinator_by_device_id(hass, device_id)
-            coordinator.vestaboard.write_message(rows)
+            if not coordinator.quiet_hours():
+                coordinator.vestaboard.write_message(rows)
 
     hass.services.async_register(
         DOMAIN,

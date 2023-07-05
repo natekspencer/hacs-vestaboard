@@ -11,7 +11,7 @@ from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import discovery
 from homeassistant.helpers.typing import ConfigType
 
-from .const import CONF_MODEL, DATA_HASS_CONFIG, DOMAIN, MODEL_BLACK
+from .const import DATA_HASS_CONFIG, DOMAIN
 from .coordinator import VestaboardCoordinator
 from .helpers import create_client
 from .services import async_setup_services
@@ -19,7 +19,7 @@ from .services import async_setup_services
 _LOGGER = logging.getLogger(__name__)
 
 PLATFORMS = [
-    Platform.CAMERA,
+    Platform.IMAGE,
     Platform.SENSOR,
 ]
 
@@ -35,8 +35,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Vestaboard from a config entry."""
     hass.data.setdefault(DOMAIN, {})
     client = create_client(entry.data)
-    color = entry.options.get(CONF_MODEL, MODEL_BLACK)
-    coordinator = VestaboardCoordinator(hass, client, color)
+    coordinator = VestaboardCoordinator(hass, client, entry.options)
     await coordinator.async_config_entry_first_refresh()
 
     if not coordinator.data:
