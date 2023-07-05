@@ -12,6 +12,7 @@ from .const import (
     ALIGN_CENTER,
     CONF_ALIGN,
     CONF_DECORATOR,
+    CONF_ENABLEMENT_TOKEN,
     CONF_VALIGN,
     DECORATOR_MUSIC,
     DOMAIN,
@@ -40,7 +41,7 @@ def create_client(data: dict[str, Any]) -> LocalClient:
     """Create a Vestaboard local client."""
     url = f"http://{data['host']}:7000"
     key = data["api_key"]
-    if data.get("enablement_token"):
+    if data.get(CONF_ENABLEMENT_TOKEN):
         client = LocalClient(base_url=url)
         client.enable(key)
         return client

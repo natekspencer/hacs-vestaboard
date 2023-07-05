@@ -1,7 +1,9 @@
-"""Vestaboard sensor entity."""
+"""Vestaboard image entity."""
 from __future__ import annotations
 
-from homeassistant.components.camera import Camera, CameraEntityDescription
+from datetime import datetime
+
+from homeassistant.components.image import ImageEntity, ImageEntityDescription
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -10,7 +12,7 @@ from .const import DOMAIN
 from .coordinator import VestaboardCoordinator
 from .entity import VestaboardEntity
 
-CAMERA = CameraEntityDescription(key="board")
+IMAGE = ImageEntityDescription(key="board")
 
 
 async def async_setup_entry(
@@ -18,25 +20,29 @@ async def async_setup_entry(
 ) -> None:
     """Set up Vestaboard camera using config entry."""
     coordinator: VestaboardCoordinator = hass.data[DOMAIN][entry.entry_id]
-    async_add_entities([VestaboardCamera(coordinator, entry, CAMERA)])
+    async_add_entities([VestaboardImageEntity(coordinator, entry, IMAGE)])
 
 
-class VestaboardCamera(VestaboardEntity, Camera):
-    """Vestaboard camera."""
+class VestaboardImageEntity(VestaboardEntity, ImageEntity):
+    """Vestaboard image entity."""
+
+    _attr_content_type = "image/svg+xml"
 
     def __init__(
         self,
         coordinator: VestaboardCoordinator,
         entry_id: str,
-        description: CameraEntityDescription,
+        description: ImageEntityDescription,
     ) -> None:
         """Initialize the entity."""
         super().__init__(coordinator, entry_id, description)
-        Camera.__init__(self)
-        self.content_type = "image/svg+xml"
+        ImageEntity.__init__(self, coordinator.hass)
 
-    def camera_image(
-        self, width: int | None = None, height: int | None = None
-    ) -> bytes | None:
-        """Return bytes of camera image."""
+    @property
+    def image_last_updated(self) -> datetime | None:
+        """The time when the image was last updated."""
+        return self.coordinator.last_updated
+
+    def image(self) -> bytes | None:
+        """Return bytes of image."""
         return self.coordinator.svg

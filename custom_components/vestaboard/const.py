@@ -10,8 +10,11 @@ ALIGNS: Final = [ALIGN_CENTER, ALIGN_LEFT, ALIGN_RIGHT]
 
 CONF_ALIGN: Final = "align"
 CONF_DECORATOR: Final = "decorator"
+CONF_ENABLEMENT_TOKEN: Final = "enablement_token"
 CONF_MESSAGE: Final = "message"
 CONF_MODEL: Final = "model"
+CONF_QUIET_END: Final = "quiet_end"
+CONF_QUIET_START: Final = "quiet_start"
 CONF_VALIGN: Final = "valign"
 
 DATA_HASS_CONFIG: Final = "hass_config"

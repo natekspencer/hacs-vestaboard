@@ -23,18 +23,21 @@ async def async_get_service(
     if discovery_info is None:
         return None
     coordinator: VestaboardCoordinator = hass.data[DOMAIN][discovery_info["entry_id"]]
-    return VestaboardNotificationService(coordinator.vestaboard)
+    return VestaboardNotificationService(coordinator)
 
 
 class VestaboardNotificationService(BaseNotificationService):
     """Implement the notification service for Vestaboard."""
 
-    def __init__(self, vestaboard: LocalClient) -> None:
+    def __init__(self, coordinator: VestaboardCoordinator) -> None:
         """Initialize the service."""
-        self.vestaboard = vestaboard
+        self.coordinator = coordinator
 
     def send_message(self, message: str = "", **kwargs: Any) -> None:
         """Send a message to a Vestaboard."""
+        if self.coordinator.quiet_hours():
+            return
+
         if not (data := kwargs.get(ATTR_DATA)):
             data = {}
-        self.vestaboard.write_message(construct_message(message, **data))
+        self.coordinator.vestaboard.write_message(construct_message(message, **data))
