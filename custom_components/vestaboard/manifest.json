@@ -10,5 +10,5 @@
   "issue_tracker": "https://github.com/natekspencer/hacs-vestaboard/issues",
   "loggers": ["custom_components.vestaboard", "vesta"],
   "requirements": ["vesta==0.10.0"],
-  "version": "0.2.0"
+  "version": "0.2.1"
 }
