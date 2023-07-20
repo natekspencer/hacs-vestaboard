@@ -12,7 +12,7 @@ from .const import DOMAIN
 from .coordinator import VestaboardCoordinator
 from .entity import VestaboardEntity
 
-IMAGE = ImageEntityDescription(key="board")
+IMAGE = ImageEntityDescription(key="board", name=None)
 
 
 async def async_setup_entry(
