@@ -1,12 +1,15 @@
 """Helpers for the Vestaboard integration."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, cast
 
+import httpx
 from vesta import Color, LocalClient, encode_row, encode_text
 
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import device_registry as dr
+from homeassistant.util.ssl import get_default_context
 
 from .const import (
     ALIGN_CENTER,
@@ -23,7 +26,9 @@ from .const import (
 if TYPE_CHECKING:
     from .coordinator import VestaboardCoordinator
 
-PRINTABLE = " ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$() - +&=;: '\"%,.  /? °🟥🟧🟨🟩🟦🟪⬜⬛■"
+PRINTABLE = (
+    " ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$() - +&=;: '\"%,.  /? °🟥🟧🟨🟩🟦🟪⬜⬛■"
+)
 BLANK_ROW = [0] * 22
 MUSIC_HEADER = encode_row("{0}Now Playing:{0}", align="center", fill=Color.GREEN)
 
@@ -34,18 +39,19 @@ def construct_message(message: str, **kwargs: Any) -> list[list[int]]:
         return decorate_music(message)
     align = kwargs.get(CONF_ALIGN, ALIGN_CENTER)
     valign = kwargs.get(CONF_VALIGN, VALIGN_MIDDLE)
-    return encode_text(message, align, valign)
+    return encode_text(message, align=align, valign=valign)
 
 
 def create_client(data: dict[str, Any]) -> LocalClient:
     """Create a Vestaboard local client."""
     url = f"http://{data['host']}:7000"
     key = data["api_key"]
+    http_client = httpx.Client(verify=get_default_context())
     if data.get(CONF_ENABLEMENT_TOKEN):
-        client = LocalClient(base_url=url)
+        client = LocalClient(base_url=url, http_client=http_client)
         client.enable(key)
         return client
-    return LocalClient(local_api_key=key, base_url=url)
+    return LocalClient(local_api_key=key, base_url=url, http_client=http_client)
 
 
 def create_svg(data: list[list[int]], color: str = MODEL_BLACK) -> str:
