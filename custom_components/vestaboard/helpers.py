@@ -29,12 +29,24 @@ if TYPE_CHECKING:
 PRINTABLE = (
     " ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$() - +&=;: '\"%,.  /? °🟥🟧🟨🟩🟦🟪⬜⬛■"
 )
+EMOJI_MAP = {
+    "🟥": "{63}",
+    "🟧": "{64}",
+    "🟨": "{65}",
+    "🟩": "{66}",
+    "🟦": "{67}",
+    "🟪": "{68}",
+    "⬜": "{69}",
+    "⬛": "{70}",
+    "■": "{71}",
+}
 BLANK_ROW = [0] * 22
 MUSIC_HEADER = encode_row("{0}Now Playing:{0}", align="center", fill=Color.GREEN)
 
 
 def construct_message(message: str, **kwargs: Any) -> list[list[int]]:
     """Construct a message."""
+    message = "".join(EMOJI_MAP.get(char, char) for char in message)
     if kwargs.get(CONF_DECORATOR) == DECORATOR_MUSIC:
         return decorate_music(message)
     align = kwargs.get(CONF_ALIGN, ALIGN_CENTER)
