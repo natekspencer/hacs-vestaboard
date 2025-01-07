@@ -10,37 +10,46 @@ message:
         device:
           integration: vestaboard
           multiple: true
+      example: device_id
     message:
       name: Message
       description: The message to send.
-      required: true
+      required: false
       selector:
         text:
+      example: This is a message
     align:
       name: Align
       description: Horizontal alignment of text. Optional, default=center
-      example: left
       selector:
         select:
           options:
             - "left"
             - "center"
             - "right"
+      example: left
     valign:
       name: Valign
       description: Vertical alignment of text. Optional, default=middle
-      example: top
       selector:
         select:
           options:
             - "top"
             - "middle"
             - "bottom"
+      example: top
     decorator:
       name: Decorator
       description: A decorator to be used with the text. Optional
-      example: music
       selector:
         select:
           options:
             - "music"
+      example: music
+    vbml:
+      name: Vestaboard markup language
+      description: "Compose a static or dynamic message using Vestaboard markup language. Requires cloud access. See https://docs.vestaboard.com/docs/vbml for more information"
+      required: false
+      selector:
+        text:
+      example: '{ "props": { "hours": "07", "minutes": "35" }, "components": [ { "style": { "justify": "center", "align": "center" }, "template": "{{ ''{{hours}}:{{minutes}}'' }}"}]}'
