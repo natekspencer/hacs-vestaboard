@@ -17,6 +17,7 @@ message:
       required: false
       selector:
         text:
+          multiline: true
       example: This is a message
     align:
       name: Align
