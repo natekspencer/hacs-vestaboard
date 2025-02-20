@@ -65,7 +65,9 @@ class VestaboardCoordinator(DataUpdateCoordinator):
             async with async_timeout.timeout(10):
                 data = self.vestaboard.read_message()
         except Exception as ex:
-            raise UpdateFailed("Couldn't read vestaboard") from ex
+            raise UpdateFailed(
+                f"Couldn't read vestaboard at {self.vestaboard.http.base_url.host}"
+            ) from ex
         if data is None:
             raise ConfigEntryAuthFailed
         if data != self.data:
