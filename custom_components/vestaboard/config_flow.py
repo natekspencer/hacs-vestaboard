@@ -1,4 +1,5 @@
 """Config flow for Vestaboard integration."""
+
 from __future__ import annotations
 
 import asyncio
@@ -105,7 +106,7 @@ class VestaboardConfigFlow(ConfigFlow, domain=DOMAIN):
     ) -> FlowResult:
         """Handle step setup."""
         if step_id != "reauth_confirm" and (
-            abort := self._abort_if_configured(user_input)
+            abort := await self._abort_if_configured(user_input)
         ):
             return abort
 
@@ -136,7 +137,9 @@ class VestaboardConfigFlow(ConfigFlow, domain=DOMAIN):
         )
         return self.async_show_form(step_id=step_id, data_schema=schema, errors=errors)
 
-    async def validate_client(self, user_input: dict[str, Any]) -> dict[str, str]:
+    async def validate_client(
+        self, user_input: dict[str, Any], write: bool = True
+    ) -> dict[str, str]:
         """Validate client setup."""
         errors = {}
         try:
@@ -146,20 +149,21 @@ class VestaboardConfigFlow(ConfigFlow, domain=DOMAIN):
             if not client.read_message():
                 errors["base"] = "invalid_api_key"
             else:
-                client.write_message(
-                    construct_message(
-                        "\n".join(
-                            [
-                                "{63}{63}{63}{63}{63}{63}{64}{64}{64}{64}{64}{64}{64}{64}{64}{65}{65}{65}{65}{65}{65}{65}",
-                                "{63}{0}{0}{0}{0}{0}{0}{0}{0}{0}{0}{0}{0}{0}{0}{0}{0}{0}{0}{0}{0}{65}",
-                                "{63}{0} Now connected to {0}{65}",
-                                "{68}{0}{0} Home Assistant {0}{0}{66}",
-                                "{68}{0}{0}{0}{0}{0}{0}{0}{0}{0}{0}{0}{0}{0}{0}{0}{0}{0}{0}{0}{0}{66}",
-                                "{68}{68}{68}{68}{68}{68}{68}{67}{67}{67}{67}{67}{67}{67}{67}{67}{66}{66}{66}{66}{66}{66}",
-                            ]
+                if write:
+                    client.write_message(
+                        construct_message(
+                            "\n".join(
+                                [
+                                    "{63}{63}{63}{63}{63}{63}{64}{64}{64}{64}{64}{64}{64}{64}{64}{65}{65}{65}{65}{65}{65}{65}",
+                                    "{63}{0}{0}{0}{0}{0}{0}{0}{0}{0}{0}{0}{0}{0}{0}{0}{0}{0}{0}{0}{0}{65}",
+                                    "{63}{0} Now connected to {0}{65}",
+                                    "{68}{0}{0} Home Assistant {0}{0}{66}",
+                                    "{68}{0}{0}{0}{0}{0}{0}{0}{0}{0}{0}{0}{0}{0}{0}{0}{0}{0}{0}{0}{0}{66}",
+                                    "{68}{68}{68}{68}{68}{68}{68}{67}{67}{67}{67}{67}{67}{67}{67}{67}{66}{66}{66}{66}{66}{66}",
+                                ]
+                            )
                         )
                     )
-                )
                 self.api_key = client.api_key
         except asyncio.TimeoutError:
             errors["base"] = "timeout_connect"
@@ -174,8 +178,7 @@ class VestaboardConfigFlow(ConfigFlow, domain=DOMAIN):
             errors["base"] = "unknown"
         return errors
 
-    @callback
-    def _abort_if_configured(
+    async def _abort_if_configured(
         self, user_input: dict[str, Any] | None
     ) -> FlowResult | None:
         """Abort if configured."""
@@ -185,5 +188,14 @@ class VestaboardConfigFlow(ConfigFlow, domain=DOMAIN):
                 if entry.data[CONF_HOST] == data[CONF_HOST] or entry.data[
                     CONF_API_KEY
                 ] == data.get(CONF_API_KEY):
-                    return self.async_abort(reason="already_configured")
+                    if not await self.validate_client(user_input, write=False):
+                        return self.async_update_reload_and_abort(
+                            entry,
+                            unique_id=self.unique_id or entry.unique_id,
+                            data_updates={
+                                CONF_HOST: user_input.get(CONF_HOST, self.host),
+                                CONF_API_KEY: self.api_key,
+                            },
+                            reason="already_configured",
+                        )
         return None

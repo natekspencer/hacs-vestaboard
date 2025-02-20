@@ -3,7 +3,7 @@
   "name": "Vestaboard",
   "codeowners": ["@natekspencer"],
   "config_flow": true,
-  "dhcp": [{ "macaddress": "4C93A60*" }],
+  "dhcp": [{ "macaddress": "4C93A600*" }],
   "documentation": "https://github.com/natekspencer/hacs-vestaboard",
   "integration_type": "device",
   "iot_class": "local_polling",
