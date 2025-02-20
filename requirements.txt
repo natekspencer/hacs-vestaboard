@@ -9,4 +9,5 @@ vesta
 # Development
 colorlog
 pip>=21.0
+pre-commit
 ruff
