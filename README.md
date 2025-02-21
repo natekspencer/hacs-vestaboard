@@ -71,7 +71,7 @@ I'm not employed by Vestaboard, and provide this custom component purely for you
 
 If you don't already own a Vestaboard, please consider using my referal link below to get $200 off (as well as a $200 referral bonus to me in appreciation)!
 
-https://shop.vestaboard.com/?vbref=ZWVLZW
+https://web.vestaboard.com/referral?vbref=ZWVLZW
 
 If you already own a Vestaboard and still want to donate, consider [sponsoring me on GitHub](https://github.com/sponsors/natekspencer) or buying me a coffee ☕ (or beer 🍺) instead by using the link below:
 
