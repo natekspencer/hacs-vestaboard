@@ -14,6 +14,18 @@
 
 Home Assistant integration for Vestaboard messaging displays.
 
+## 🔐 Local API Access Required
+
+To use this integration, you **must first request access to Vestaboard's Local API**. This is required to enable local communication with your Vestaboard device.
+
+### ✅ How to Request Access
+
+1. Visit [https://www.vestaboard.com/local-api](https://www.vestaboard.com/local-api).
+2. Fill out the request form to apply for a Local API enablement token.
+3. Once approved, you will receive a token that you'll need to configure this integration.
+
+⚠️ **Note:** The integration will not function without this token. Be sure to complete this step before proceeding with setup.
+
 # Installation
 
 There are two main ways to install this custom component within your Home Assistant instance:
