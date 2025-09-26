@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import voluptuous as vol
 
+from datetime import timedelta
+
 from homeassistant.const import CONF_DEVICE_ID
 from homeassistant.core import HomeAssistant, HomeAssistantError, ServiceCall, callback
 from homeassistant.helpers import config_validation as cv
