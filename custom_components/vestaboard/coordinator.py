@@ -27,6 +27,8 @@ class VestaboardCoordinator(DataUpdateCoordinator):
     last_updated: datetime | None = None
     message: str | None
     svg: bytes | None
+    persistent_message_rows: list[list[int]] | None = None
+    alert_expiration: datetime | None = None    
 
     _read_errors: int = 0
 
@@ -61,17 +63,30 @@ class VestaboardCoordinator(DataUpdateCoordinator):
         return False
 
     async def _async_update_data(self):
+        """Fetch data from Vestaboard."""
+        if self.alert_expiration and dt_util.now() >= self.alert_expiration:
+            _LOGGER.debug("Vestaboard alert expired, reverting to persistent message")
+            if self.persistent_message_rows:
+                await self.hass.async_add_executor_job(
+                    self.vestaboard.write_message, self.persistent_message_rows
+                )
+            self.alert_expiration = None
+
         try:
             async with async_timeout.timeout(10):
-                data = self.vestaboard.read_message()
+                data = await self.hass.async_add_executor_job(self.vestaboard.read_message)
         except Exception as ex:
             raise UpdateFailed(
                 f"Couldn't read vestaboard at {self.vestaboard.http.base_url.host}"
             ) from ex
         if data is None:
             raise ConfigEntryAuthFailed
+
+        if self.persistent_message_rows is None:
+            self.persistent_message_rows = data
+
         if data != self.data:
-            self.last_updated = datetime.now()
+            self.last_updated = dt_util.now()
             self.message = decode(data)
             self.svg = create_svg(data, self.model).encode()
         return data
