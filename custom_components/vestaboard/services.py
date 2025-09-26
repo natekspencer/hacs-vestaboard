@@ -100,27 +100,34 @@ def async_setup_services(hass: HomeAssistant) -> None:
         for device_id in call.data[CONF_DEVICE_ID]:
             coordinator = async_get_coordinator_by_device_id(hass, device_id)
             if coordinator.quiet_hours():
-                continue
+                continue   
+
+            async def write_and_update_state(message_rows: list[list[int]]):
+                """Write to board and immediately update coordinator."""
+                await hass.async_add_executor_job(
+                    coordinator.vestaboard.write_message, message_rows
+                )
+                # Manually update coordinator state for instant UI feedback
+                coordinator.message = decode(message_rows)
+                coordinator.svg = create_svg(
+                    message_rows, coordinator.model
+                ).encode()
+                coordinator.last_updated = dt_util.now()
+                coordinator.async_set_updated_data(message_rows)
 
             if duration:  # This is an alert
                 coordinator.alert_expiration = dt_util.now() + timedelta(
                     seconds=duration
                 )
-                await hass.async_add_executor_job(
-                    coordinator.vestaboard.write_message, rows
-                )
+                await write_and_update_state(rows)
             else:  # This is a persistent message
                 coordinator.persistent_message_rows = rows
-                # Only write the message if there is no active alert.
-                # An alert is active if an expiration is set and it's in the future.
                 if not (
                     coordinator.alert_expiration
                     and coordinator.alert_expiration > dt_util.now()
                 ):
-                    await hass.async_add_executor_job(
-                        coordinator.vestaboard.write_message, rows
-                    )    
-
+                    await write_and_update_state(rows)
+    
     hass.services.async_register(
         DOMAIN,
         SERVICE_MESSAGE,
