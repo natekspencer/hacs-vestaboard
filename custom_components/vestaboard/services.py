@@ -116,7 +116,12 @@ def async_setup_services(hass: HomeAssistant) -> None:
                 )
             else:  # This is a persistent message
                 coordinator.persistent_message_rows = rows
-                if not coordinator.alert_expiration:
+                # Only write the message if there is no active alert.
+                # An alert is active if an expiration is set and it's in the future.
+                if not (
+                    coordinator.alert_expiration
+                    and coordinator.alert_expiration > dt_util.now()
+                ):
                     await hass.async_add_executor_job(
                         coordinator.vestaboard.write_message, rows
                     )    
