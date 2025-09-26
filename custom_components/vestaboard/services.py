@@ -99,11 +99,6 @@ def async_setup_services(hass: HomeAssistant) -> None:
 
         for device_id in call.data[CONF_DEVICE_ID]:
             coordinator = async_get_coordinator_by_device_id(hass, device_id)
-            if not coordinator.quiet_hours():
-                coordinator.vestaboard.write_message(rows)
-
-        for device_id in call.data[CONF_DEVICE_ID]:
-            coordinator = async_get_coordinator_by_device_id(hass, device_id)
             if coordinator.quiet_hours():
                 continue
 
