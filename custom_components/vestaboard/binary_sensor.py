@@ -37,7 +37,10 @@ class VestaboardAlertActiveEntity(VestaboardEntity, BinarySensorEntity):
     @property
     def is_on(self) -> bool:
         """Return true if the binary sensor is on."""
-        return self.coordinator.alert_expiration is not None
+        return (
+            self.coordinator.alert_expiration is not None
+            and self.coordinator.alert_expiration > dt_util.now()
+        )
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
