@@ -13,11 +13,10 @@ from .const import (
     ALIGN_CENTER,
     ALIGNS,
     CONF_ALIGN,
-    CONF_DECORATOR,
+    CONF_DURATION,
     CONF_MESSAGE,
     CONF_VALIGN,
     CONF_VBML,
-    DECORATORS,
     DOMAIN,
     SERVICE_MESSAGE,
     VALIGN_MIDDLE,
@@ -65,7 +64,9 @@ SERVICE_MESSAGE_SCHEMA = vol.All(
         {
             vol.Required(CONF_DEVICE_ID): vol.All(cv.ensure_list, [cv.string]),
             vol.Optional(CONF_MESSAGE): cv.string,
-            vol.Optional(CONF_DECORATOR): vol.In(DECORATORS),
+            vol.Optional(CONF_DURATION): vol.All(
+                vol.Coerce(int), vol.Range(min=10, max=7200)
+            ),
             vol.Optional(CONF_ALIGN, default=ALIGN_CENTER): vol.In(ALIGNS),
             vol.Optional(CONF_VALIGN, default=VALIGN_MIDDLE): vol.In(VALIGNS),
             vol.Optional(CONF_VBML): VBML_SCHEMA,
@@ -91,10 +92,31 @@ def async_setup_services(hass: HomeAssistant) -> None:
         else:
             rows = construct_message(**{CONF_MESSAGE: ""} | call.data)
 
+        duration = call.data.get(CONF_DURATION)
+
         for device_id in call.data[CONF_DEVICE_ID]:
             coordinator = async_get_coordinator_by_device_id(hass, device_id)
             if not coordinator.quiet_hours():
                 coordinator.vestaboard.write_message(rows)
+
+        for device_id in call.data[CONF_DEVICE_ID]:
+            coordinator = async_get_coordinator_by_device_id(hass, device_id)
+            if coordinator.quiet_hours():
+                continue
+
+            if duration:  # This is an alert
+                coordinator.alert_expiration = dt_util.now() + timedelta(
+                    seconds=duration
+                )
+                await hass.async_add_executor_job(
+                    coordinator.vestaboard.write_message, rows
+                )
+            else:  # This is a persistent message
+                coordinator.persistent_message_rows = rows
+                if not coordinator.alert_expiration:
+                    await hass.async_add_executor_job(
+                        coordinator.vestaboard.write_message, rows
+                    )    
 
     hass.services.async_register(
         DOMAIN,
