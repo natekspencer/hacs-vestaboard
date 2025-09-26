@@ -12,6 +12,7 @@ ALIGNS: Final = [ALIGN_CENTER, ALIGN_LEFT, ALIGN_RIGHT]
 CONF_ALIGN: Final = "align"
 CONF_DURATION: Final = "duration"
 CONF_ENABLEMENT_TOKEN: Final = "enablement_token"
+CONF_JUSTIFY: Final = "justify"
 CONF_MESSAGE: Final = "message"
 CONF_MODEL: Final = "model"
 CONF_QUIET_END: Final = "quiet_end"
