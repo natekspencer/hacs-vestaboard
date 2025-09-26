@@ -3,6 +3,8 @@ from __future__ import annotations
 
 from typing import Any
 
+import homeassistant.util.dt as dt_util
+
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity,
@@ -11,7 +13,7 @@ from homeassistant.components.binary_sensor import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-import homeassistant.util.dt as dt_util
+
 
 from .const import DOMAIN
 from .coordinator import VestaboardCoordinator
