@@ -8,6 +8,7 @@ from homeassistant.const import CONF_DEVICE_ID
 from homeassistant.core import HomeAssistant, HomeAssistantError, ServiceCall, callback
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.httpx_client import get_async_client
+import homeassistant.util.dt as dt_util
 
 from .const import (
     ALIGN_CENTER,
