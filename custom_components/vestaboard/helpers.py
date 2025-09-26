@@ -81,7 +81,7 @@ def create_svg(data: list[list[int]], color: str = MODEL_BLACK) -> str:
             if code in (c.value for c in Color):
                 svg += f'<rect class="char {Color(code).name.lower()}" x="{xpos}" y="{ypos}"/>'
             else:
-                svg += f'<text class="char" x="{xpos+0.045}" y="{ypos}">{symbol(code).replace("&","&amp;")}</text>'
+                svg += f'<text class="char" x="{xpos + 0.045}" y="{ypos}">{symbol(code).replace("&", "&amp;")}</text>'
     svg += '<text class="logo" x="50%" y="1.68">VESTABOARD</text></svg>'
     return svg
 
