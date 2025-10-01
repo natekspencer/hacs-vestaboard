@@ -27,6 +27,8 @@ class VestaboardCoordinator(DataUpdateCoordinator):
     last_updated: datetime | None = None
     message: str | None
     svg: bytes | None
+    persistent_message: list[list[int]] | None = None
+    alert_expiration: datetime | None = None
 
     _read_errors: int = 0
 
@@ -51,6 +53,14 @@ class VestaboardCoordinator(DataUpdateCoordinator):
         else:
             self.quiet_start = self.quiet_end = None
 
+    def process_data(self, data: list[list[int]]) -> list[list[int]]:
+        """Process data."""
+        if data != self.data:
+            self.last_updated = dt_util.now()
+            self.message = decode(data)
+            self.svg = create_svg(data, self.model).encode()
+        return data
+
     def quiet_hours(self) -> bool:
         """Check if quiet hours."""
         if self.quiet_start and self.quiet_end:
@@ -61,17 +71,35 @@ class VestaboardCoordinator(DataUpdateCoordinator):
         return False
 
     async def _async_update_data(self):
+        """Fetch data from Vestaboard."""
+        if self.alert_expiration and dt_util.now() >= self.alert_expiration:
+            _LOGGER.debug("Vestaboard alert expired, reverting to persistent message")
+            self.alert_expiration = None
+            if rows := self.persistent_message:
+                await self.write_and_update_state(rows)
+                return rows
+
         try:
             async with async_timeout.timeout(10):
-                data = self.vestaboard.read_message()
+                data = await self.hass.async_add_executor_job(
+                    self.vestaboard.read_message
+                )
         except Exception as ex:
             raise UpdateFailed(
                 f"Couldn't read vestaboard at {self.vestaboard.http.base_url.host}"
             ) from ex
         if data is None:
             raise ConfigEntryAuthFailed
-        if data != self.data:
-            self.last_updated = datetime.now()
-            self.message = decode(data)
-            self.svg = create_svg(data, self.model).encode()
-        return data
+
+        if self.persistent_message is None:
+            self.persistent_message = data
+
+        return self.process_data(data)
+
+    async def write_and_update_state(self, message_rows: list[list[int]]) -> None:
+        """Write to board and immediately update coordinator."""
+        await self.hass.async_add_executor_job(
+            self.vestaboard.write_message, message_rows
+        )
+        # Manually update coordinator state for instant UI feedback
+        self.async_set_updated_data(self.process_data(message_rows))

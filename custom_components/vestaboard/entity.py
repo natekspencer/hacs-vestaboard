@@ -1,4 +1,5 @@
 """Vestaboard entity."""
+
 from __future__ import annotations
 
 import logging
@@ -17,7 +18,6 @@ class VestaboardEntity(CoordinatorEntity[VestaboardCoordinator]):
     """Base class for Vestaboard entities."""
 
     _attr_has_entity_name = True
-    _attr_icon = "mdi:sign-text"
 
     def __init__(
         self,

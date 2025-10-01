@@ -19,6 +19,16 @@ message:
         text:
           multiline: true
       example: This is a message
+    duration:
+      name: Alert Duration
+      description: "Display the message as a temporary alert. The board will revert to its previous persistent message after the duration expires. Duration is in seconds."
+      required: false
+      default: 300
+      selector:
+        number:
+          min: 10
+          max: 7200
+          unit_of_measurement: "seconds"
     align:
       name: Align
       description: Horizontal alignment of text. Optional, default=center
@@ -39,14 +49,6 @@ message:
             - "middle"
             - "bottom"
       example: top
-    decorator:
-      name: Decorator
-      description: A decorator to be used with the text. Optional
-      selector:
-        select:
-          options:
-            - "music"
-      example: music
     vbml:
       name: Vestaboard markup language
       description: "Compose a static or dynamic message using Vestaboard markup language. Requires cloud access. See https://docs.vestaboard.com/docs/vbml for more information"

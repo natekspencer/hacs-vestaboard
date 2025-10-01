@@ -2,22 +2,24 @@
 
 from __future__ import annotations
 
+from datetime import timedelta
+
 import voluptuous as vol
 
 from homeassistant.const import CONF_DEVICE_ID
 from homeassistant.core import HomeAssistant, HomeAssistantError, ServiceCall, callback
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.httpx_client import get_async_client
+from homeassistant.util.dt import now as dt_now
 
 from .const import (
     ALIGN_CENTER,
     ALIGNS,
     CONF_ALIGN,
-    CONF_DECORATOR,
+    CONF_DURATION,
     CONF_MESSAGE,
     CONF_VALIGN,
     CONF_VBML,
-    DECORATORS,
     DOMAIN,
     SERVICE_MESSAGE,
     VALIGN_MIDDLE,
@@ -65,7 +67,9 @@ SERVICE_MESSAGE_SCHEMA = vol.All(
         {
             vol.Required(CONF_DEVICE_ID): vol.All(cv.ensure_list, [cv.string]),
             vol.Optional(CONF_MESSAGE): cv.string,
-            vol.Optional(CONF_DECORATOR): vol.In(DECORATORS),
+            vol.Optional(CONF_DURATION): vol.All(
+                vol.Coerce(int), vol.Range(min=10, max=7200)
+            ),
             vol.Optional(CONF_ALIGN, default=ALIGN_CENTER): vol.In(ALIGNS),
             vol.Optional(CONF_VALIGN, default=VALIGN_MIDDLE): vol.In(VALIGNS),
             vol.Optional(CONF_VBML): VBML_SCHEMA,
@@ -93,8 +97,16 @@ def async_setup_services(hass: HomeAssistant) -> None:
 
         for device_id in call.data[CONF_DEVICE_ID]:
             coordinator = async_get_coordinator_by_device_id(hass, device_id)
-            if not coordinator.quiet_hours():
-                coordinator.vestaboard.write_message(rows)
+            if coordinator.quiet_hours():
+                continue
+
+            if duration := call.data.get(CONF_DURATION):  # This is an alert
+                coordinator.alert_expiration = dt_now() + timedelta(seconds=duration)
+                await coordinator.write_and_update_state(rows)
+            else:
+                coordinator.persistent_message = rows
+                if not ((alert := coordinator.alert_expiration) and alert > dt_now()):
+                    await coordinator.write_and_update_state(rows)
 
     hass.services.async_register(
         DOMAIN,

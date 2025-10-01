@@ -42,5 +42,25 @@
         }
       }
     }
+  },
+  "entity": {
+    "binary_sensor": {
+      "alert": {
+        "name": "Alert"
+      }
+    },
+    "button": {
+      "clear_alert": {
+        "name": "Clear alert"
+      }
+    },
+    "sensor": {
+      "alert_expiration": {
+        "name": "Alert expiration"
+      },
+      "message": {
+        "name": "Message"
+      }
+    }
   }
 }
