@@ -26,7 +26,7 @@ MODEL_BLACK: Final = "black"
 MODEL_WHITE: Final = "white"
 
 SERVICE_MESSAGE: Final = "message"
-VBML_URL: Final = "https://vbml.netlify.app/"
+VBML_URL: Final = "https://vbml.vestaboard.com/compose"
 
 VALIGN_BOTTOM: Final = "bottom"
 VALIGN_MIDDLE: Final = "middle"
