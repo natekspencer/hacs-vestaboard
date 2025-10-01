@@ -1,11 +1,16 @@
 """Vestaboard sensor entity."""
+
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import datetime
+from typing import Callable
 
-import homeassistant.util.dt as dt_util
-
-from homeassistant.components.sensor import SensorDeviceClass, SensorEntity, SensorEntityDescription
+from homeassistant.components.sensor import (
+    SensorDeviceClass,
+    SensorEntity,
+    SensorEntityDescription,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
@@ -15,14 +20,6 @@ from .const import DOMAIN
 from .coordinator import VestaboardCoordinator
 from .entity import VestaboardEntity
 
-MESSAGE = SensorEntityDescription(key="message", name="Message")
-
-ALERT_EXPIRATION = SensorEntityDescription(
-    key="alert_expiration",
-    name="Alert Expiration",
-    device_class=SensorDeviceClass.TIMESTAMP,
-    entity_category=EntityCategory.DIAGNOSTIC,
-)
 
 async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
@@ -30,32 +27,38 @@ async def async_setup_entry(
     """Set up Vestaboard sensors using config entry."""
     coordinator: VestaboardCoordinator = hass.data[DOMAIN][entry.entry_id]
     async_add_entities(
-        [
-            VestaboardSensorEntity(coordinator, entry, MESSAGE),
-            VestaboardAlertExpirationSensorEntity(
-                coordinator, entry, ALERT_EXPIRATION
-            ),
-        ]
+        VestaboardSensorEntity(coordinator, entry, description)
+        for description in SENSORS
     )
+
+
+@dataclass(kw_only=True)
+class VestaboardSensorEntityDescription(SensorEntityDescription):
+    value_fn: Callable[[VestaboardCoordinator], datetime | str | None]
+
+
+SENSORS = (
+    VestaboardSensorEntityDescription(
+        key="message",
+        translation_key="message",
+        value_fn=lambda coor: coor.message,
+    ),
+    VestaboardSensorEntityDescription(
+        key="alert_expiration",
+        translation_key="alert_expiration",
+        device_class=SensorDeviceClass.TIMESTAMP,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        value_fn=lambda coor: coor.alert_expiration,
+    ),
+)
 
 
 class VestaboardSensorEntity(VestaboardEntity, SensorEntity):
     """Vestaboard sensor entity."""
 
+    entity_description: VestaboardSensorEntityDescription
+
     @property
     def native_value(self) -> str | None:
         """Return the value reported by the sensor."""
-        return self.coordinator.message
-
-class VestaboardAlertExpirationSensorEntity(VestaboardEntity, SensorEntity):
-    """Vestaboard alert expiration sensor entity."""
-
-    @property
-    def native_value(self) -> datetime | None:
-        """Return the value reported by the sensor."""
-        if (
-            self.coordinator.alert_expiration is not None
-            and self.coordinator.alert_expiration > dt_util.now()
-        ):
-            return self.coordinator.alert_expiration
-        return None
+        return self.entity_description.value_fn(self.coordinator)

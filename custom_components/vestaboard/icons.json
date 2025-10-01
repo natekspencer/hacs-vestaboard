@@ -1,0 +1,9 @@
+{
+  "entity": {
+    "sensor": {
+      "message": {
+        "default": "mdi:sign-text"
+      }
+    }
+  }
+}

@@ -1,4 +1,5 @@
 """Support for Vestaboard."""
+
 from __future__ import annotations
 
 import logging
@@ -20,6 +21,7 @@ _LOGGER = logging.getLogger(__name__)
 
 PLATFORMS = [
     Platform.BINARY_SENSOR,
+    Platform.BUTTON,
     Platform.IMAGE,
     Platform.SENSOR,
 ]
