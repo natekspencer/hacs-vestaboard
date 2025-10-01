@@ -22,9 +22,6 @@ CONF_VBML: Final = "vbml"
 
 DATA_HASS_CONFIG: Final = "hass_config"
 
-DECORATOR_MUSIC: Final = "music"
-DECORATORS: Final = [DECORATOR_MUSIC]
-
 MODEL_BLACK: Final = "black"
 MODEL_WHITE: Final = "white"
 
