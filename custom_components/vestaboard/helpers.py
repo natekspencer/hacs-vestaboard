@@ -14,7 +14,6 @@ from homeassistant.util.ssl import get_default_context
 from .const import (
     ALIGN_CENTER,
     CONF_ALIGN,
-    CONF_DECORATOR,
     CONF_ENABLEMENT_TOKEN,
     CONF_VALIGN,
     DECORATOR_MUSIC,
@@ -40,19 +39,13 @@ EMOJI_MAP = {
     "⬛": "{70}",
     "■": "{71}",
 }
-BLANK_ROW = [0] * 22
-MUSIC_HEADER = encode_row("{0}Now Playing:{0}", align="center", fill=Color.GREEN)
-
 
 def construct_message(message: str, **kwargs: Any) -> list[list[int]]:
     """Construct a message."""
     message = "".join(EMOJI_MAP.get(char, char) for char in message)
-    if kwargs.get(CONF_DECORATOR) == DECORATOR_MUSIC:
-        return decorate_music(message)
     align = kwargs.get(CONF_ALIGN, ALIGN_CENTER)
     valign = kwargs.get(CONF_VALIGN, VALIGN_MIDDLE)
     return encode_text(message, align=align, valign=valign)
-
 
 def create_client(data: dict[str, Any]) -> LocalClient:
     """Create a Vestaboard local client."""
@@ -93,18 +86,6 @@ def decode(data: list[int] | list[list[int]]) -> None:
     """
     rows = cast(list[list[int]], data if data and isinstance(data[0], list) else [data])
     return "\n".join((f"{''.join(map(symbol, row))}" for row in rows))
-
-
-def decorate_music(message: str) -> list[list[int]]:
-    """Decorate a message with a `Now Playing:` header."""
-    message = encode_text(message, align="center", valign="top")
-    message = [
-        MUSIC_HEADER,
-        *(message if message[-2] != BLANK_ROW else [BLANK_ROW.copy()] + message),
-    ][:6]
-    if message[1][0] == message[1][-1] == 0:
-        message[1][0] = message[1][-1] = Color.GREEN.value
-    return message
 
 
 def symbol(code: int) -> str:

@@ -2,29 +2,36 @@
 
 from __future__ import annotations
 
+from datetime import timedelta
+
 import voluptuous as vol
 
 from homeassistant.const import CONF_DEVICE_ID
 from homeassistant.core import HomeAssistant, HomeAssistantError, ServiceCall, callback
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.httpx_client import get_async_client
+import homeassistant.util.dt as dt_util
 
 from .const import (
     ALIGN_CENTER,
     ALIGNS,
     CONF_ALIGN,
-    CONF_DECORATOR,
+    CONF_DURATION,
     CONF_MESSAGE,
     CONF_VALIGN,
     CONF_VBML,
-    DECORATORS,
     DOMAIN,
     SERVICE_MESSAGE,
     VALIGN_MIDDLE,
     VALIGNS,
     VBML_URL,
 )
-from .helpers import async_get_coordinator_by_device_id, construct_message
+from .helpers import (
+    async_get_coordinator_by_device_id,
+    construct_message,
+    create_svg,
+    decode,
+)
 
 _character_codes = vol.All(vol.Coerce(int), vol.Range(min=0, max=71))
 _raw_characters = vol.All(cv.ensure_list, [vol.All(cv.ensure_list, [_character_codes])])
@@ -65,7 +72,9 @@ SERVICE_MESSAGE_SCHEMA = vol.All(
         {
             vol.Required(CONF_DEVICE_ID): vol.All(cv.ensure_list, [cv.string]),
             vol.Optional(CONF_MESSAGE): cv.string,
-            vol.Optional(CONF_DECORATOR): vol.In(DECORATORS),
+            vol.Optional(CONF_DURATION): vol.All(
+                vol.Coerce(int), vol.Range(min=10, max=7200)
+            ),
             vol.Optional(CONF_ALIGN, default=ALIGN_CENTER): vol.In(ALIGNS),
             vol.Optional(CONF_VALIGN, default=VALIGN_MIDDLE): vol.In(VALIGNS),
             vol.Optional(CONF_VBML): VBML_SCHEMA,
@@ -91,10 +100,38 @@ def async_setup_services(hass: HomeAssistant) -> None:
         else:
             rows = construct_message(**{CONF_MESSAGE: ""} | call.data)
 
+        duration = call.data.get(CONF_DURATION)
+
         for device_id in call.data[CONF_DEVICE_ID]:
             coordinator = async_get_coordinator_by_device_id(hass, device_id)
-            if not coordinator.quiet_hours():
-                coordinator.vestaboard.write_message(rows)
+            if coordinator.quiet_hours():
+                continue
+
+            async def write_and_update_state(message_rows: list[list[int]]):
+                """Write to board and immediately update coordinator."""
+                await hass.async_add_executor_job(
+                    coordinator.vestaboard.write_message, message_rows
+                )
+                # Manually update coordinator state for instant UI feedback
+                coordinator.message = decode(message_rows)
+                coordinator.svg = create_svg(
+                    message_rows, coordinator.model
+                ).encode()
+                coordinator.last_updated = dt_util.now()
+                coordinator.async_set_updated_data(message_rows)
+
+            if duration:  # This is an alert
+                coordinator.alert_expiration = dt_util.now() + timedelta(
+                    seconds=duration
+                )
+                await write_and_update_state(rows)
+            else:  # This is a persistent message
+                coordinator.persistent_message_rows = rows
+                if not (
+                    coordinator.alert_expiration
+                    and coordinator.alert_expiration > dt_util.now()
+                ):
+                    await write_and_update_state(rows)
 
     hass.services.async_register(
         DOMAIN,
