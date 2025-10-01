@@ -17,6 +17,7 @@ from .const import (
     ALIGNS,
     CONF_ALIGN,
     CONF_DURATION,
+    CONF_JUSTIFY,
     CONF_MESSAGE,
     CONF_VALIGN,
     CONF_VBML,
@@ -85,15 +86,34 @@ def async_setup_services(hass: HomeAssistant) -> None:
 
     async def _async_service_message(call: ServiceCall) -> None:
         """Send a message to a Vestaboard."""
-        if vbml := call.data.get(CONF_VBML):
+
+        async def _translate_vbml(vbml: dict) -> list[list[int]]:
+            """Translate VBML."""
             client = get_async_client(hass)
             response = await client.post(VBML_URL, json=vbml)
             if response.is_error and b"message" in response.content:
                 raise HomeAssistantError(response.json())
             response.raise_for_status()
-            rows = response.json()
+            return response.json()
+
+        if vbml := call.data.get(CONF_VBML):
+            rows = await _translate_vbml(vbml)
         else:
-            rows = construct_message(**{CONF_MESSAGE: ""} | call.data)
+            try:
+                rows = construct_message(**{CONF_MESSAGE: ""} | call.data)
+            except ValueError:
+                align = call.data.get(CONF_VALIGN, ALIGN_CENTER).replace(
+                    VALIGN_MIDDLE, ALIGN_CENTER
+                )
+                justify = call.data.get(CONF_ALIGN, ALIGN_CENTER)
+                message = {
+                    "style": {CONF_ALIGN: align, CONF_JUSTIFY: justify},
+                    "template": call.data.get(CONF_MESSAGE, ""),
+                }
+                components = [message]
+
+                vbml = {"components": components}
+                rows = await _translate_vbml(vbml)
 
         for device_id in call.data[CONF_DEVICE_ID]:
             coordinator = async_get_coordinator_by_device_id(hass, device_id)
