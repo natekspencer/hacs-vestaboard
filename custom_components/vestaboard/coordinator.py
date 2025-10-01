@@ -28,7 +28,7 @@ class VestaboardCoordinator(DataUpdateCoordinator):
     message: str | None
     svg: bytes | None
     persistent_message_rows: list[list[int]] | None = None
-    alert_expiration: datetime | None = None    
+    alert_expiration: datetime | None = None
 
     _read_errors: int = 0
 
@@ -74,7 +74,9 @@ class VestaboardCoordinator(DataUpdateCoordinator):
 
         try:
             async with async_timeout.timeout(10):
-                data = await self.hass.async_add_executor_job(self.vestaboard.read_message)
+                data = await self.hass.async_add_executor_job(
+                    self.vestaboard.read_message
+                )
         except Exception as ex:
             raise UpdateFailed(
                 f"Couldn't read vestaboard at {self.vestaboard.http.base_url.host}"

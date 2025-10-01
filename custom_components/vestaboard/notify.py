@@ -1,9 +1,9 @@
 """Support for Vestaboard notifications."""
+
 from __future__ import annotations
 
 from typing import Any
 
-from vesta import LocalClient
 
 from homeassistant.components.notify import ATTR_DATA, BaseNotificationService
 from homeassistant.core import HomeAssistant

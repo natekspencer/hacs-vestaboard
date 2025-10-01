@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, cast
 
 import httpx
-from vesta import Color, LocalClient, encode_row, encode_text
+from vesta import Color, LocalClient, encode_text
 
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import device_registry as dr
@@ -16,7 +16,6 @@ from .const import (
     CONF_ALIGN,
     CONF_ENABLEMENT_TOKEN,
     CONF_VALIGN,
-    DECORATOR_MUSIC,
     DOMAIN,
     MODEL_BLACK,
     VALIGN_MIDDLE,
@@ -40,12 +39,14 @@ EMOJI_MAP = {
     "■": "{71}",
 }
 
+
 def construct_message(message: str, **kwargs: Any) -> list[list[int]]:
     """Construct a message."""
     message = "".join(EMOJI_MAP.get(char, char) for char in message)
     align = kwargs.get(CONF_ALIGN, ALIGN_CENTER)
     valign = kwargs.get(CONF_VALIGN, VALIGN_MIDDLE)
     return encode_text(message, align=align, valign=valign)
+
 
 def create_client(data: dict[str, Any]) -> LocalClient:
     """Create a Vestaboard local client."""
@@ -74,7 +75,7 @@ def create_svg(data: list[list[int]], color: str = MODEL_BLACK) -> str:
             if code in (c.value for c in Color):
                 svg += f'<rect class="char {Color(code).name.lower()}" x="{xpos}" y="{ypos}"/>'
             else:
-                svg += f'<text class="char" x="{xpos+0.045}" y="{ypos}">{symbol(code).replace("&","&amp;")}</text>'
+                svg += f'<text class="char" x="{xpos + 0.045}" y="{ypos}">{symbol(code).replace("&", "&amp;")}</text>'
     svg += '<text class="logo" x="50%" y="1.68">VESTABOARD</text></svg>'
     return svg
 

@@ -114,9 +114,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
                 )
                 # Manually update coordinator state for instant UI feedback
                 coordinator.message = decode(message_rows)
-                coordinator.svg = create_svg(
-                    message_rows, coordinator.model
-                ).encode()
+                coordinator.svg = create_svg(message_rows, coordinator.model).encode()
                 coordinator.last_updated = dt_util.now()
                 coordinator.async_set_updated_data(message_rows)
 
