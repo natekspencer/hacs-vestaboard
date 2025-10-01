@@ -23,6 +23,7 @@ message:
       name: Alert Duration
       description: "Display the message as a temporary alert. The board will revert to its previous persistent message after the duration expires. Duration is in seconds."
       required: false
+      default: 300
       selector:
         number:
           min: 10

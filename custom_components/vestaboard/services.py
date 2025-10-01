@@ -10,7 +10,7 @@ from homeassistant.const import CONF_DEVICE_ID
 from homeassistant.core import HomeAssistant, HomeAssistantError, ServiceCall, callback
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.httpx_client import get_async_client
-import homeassistant.util.dt as dt_util
+from homeassistant.util.dt import now as dt_now
 
 from .const import (
     ALIGN_CENTER,
@@ -26,12 +26,7 @@ from .const import (
     VALIGNS,
     VBML_URL,
 )
-from .helpers import (
-    async_get_coordinator_by_device_id,
-    construct_message,
-    create_svg,
-    decode,
-)
+from .helpers import async_get_coordinator_by_device_id, construct_message
 
 _character_codes = vol.All(vol.Coerce(int), vol.Range(min=0, max=71))
 _raw_characters = vol.All(cv.ensure_list, [vol.All(cv.ensure_list, [_character_codes])])
@@ -100,36 +95,18 @@ def async_setup_services(hass: HomeAssistant) -> None:
         else:
             rows = construct_message(**{CONF_MESSAGE: ""} | call.data)
 
-        duration = call.data.get(CONF_DURATION)
-
         for device_id in call.data[CONF_DEVICE_ID]:
             coordinator = async_get_coordinator_by_device_id(hass, device_id)
             if coordinator.quiet_hours():
                 continue
 
-            async def write_and_update_state(message_rows: list[list[int]]):
-                """Write to board and immediately update coordinator."""
-                await hass.async_add_executor_job(
-                    coordinator.vestaboard.write_message, message_rows
-                )
-                # Manually update coordinator state for instant UI feedback
-                coordinator.message = decode(message_rows)
-                coordinator.svg = create_svg(message_rows, coordinator.model).encode()
-                coordinator.last_updated = dt_util.now()
-                coordinator.async_set_updated_data(message_rows)
-
-            if duration:  # This is an alert
-                coordinator.alert_expiration = dt_util.now() + timedelta(
-                    seconds=duration
-                )
-                await write_and_update_state(rows)
-            else:  # This is a persistent message
-                coordinator.persistent_message_rows = rows
-                if not (
-                    coordinator.alert_expiration
-                    and coordinator.alert_expiration > dt_util.now()
-                ):
-                    await write_and_update_state(rows)
+            if duration := call.data.get(CONF_DURATION):  # This is an alert
+                coordinator.alert_expiration = dt_now() + timedelta(seconds=duration)
+                await coordinator.write_and_update_state(rows)
+            else:
+                coordinator.persistent_message = rows
+                if not ((alert := coordinator.alert_expiration) and alert > dt_now()):
+                    await coordinator.write_and_update_state(rows)
 
     hass.services.async_register(
         DOMAIN,
