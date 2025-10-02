@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from homeassistant.components.binary_sensor import (
-    BinarySensorDeviceClass,
     BinarySensorEntity,
     BinarySensorEntityDescription,
 )
@@ -31,7 +30,6 @@ async def async_setup_entry(
 TEMPORARY_MESSAGE = BinarySensorEntityDescription(
     key="temporary_message",
     translation_key="temporary_message",
-    device_class=BinarySensorDeviceClass.RUNNING,
     entity_category=EntityCategory.DIAGNOSTIC,
 )
 
@@ -43,4 +41,4 @@ class VestaboardBinarySensorEntity(VestaboardEntity, BinarySensorEntity):
     def is_on(self) -> bool:
         """Return true if the binary sensor is on."""
         expiration = self.coordinator.temporary_message_expiration
-        return expiration and expiration > dt_now()
+        return expiration is not None and expiration > dt_now()
