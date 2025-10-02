@@ -9,22 +9,21 @@ import voluptuous as vol
 from homeassistant.const import CONF_DEVICE_ID
 from homeassistant.core import HomeAssistant, HomeAssistantError, ServiceCall, callback
 from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers.event import async_track_point_in_time
 from homeassistant.helpers.httpx_client import get_async_client
 from homeassistant.util.dt import now as dt_now
 
 from .const import (
     ALIGN_CENTER,
-    ALIGNS,
+    ALIGN_HORIZONTAL,
+    ALIGN_VERTICAL,
     CONF_ALIGN,
     CONF_DURATION,
     CONF_JUSTIFY,
     CONF_MESSAGE,
-    CONF_VALIGN,
     CONF_VBML,
     DOMAIN,
     SERVICE_MESSAGE,
-    VALIGN_MIDDLE,
-    VALIGNS,
     VBML_URL,
 )
 from .helpers import async_get_coordinator_by_device_id, construct_message
@@ -35,8 +34,8 @@ _style = vol.Schema(
     {
         vol.Optional("height"): vol.All(vol.Coerce(int), vol.Range(min=1, max=6)),
         vol.Optional("width"): vol.All(vol.Coerce(int), vol.Range(min=1, max=22)),
-        vol.Optional("justify"): vol.In(["left", "right", "center", "justified"]),
-        vol.Optional("align"): vol.In(["top", "bottom", "center", "justified"]),
+        vol.Optional(CONF_JUSTIFY): vol.In(ALIGN_HORIZONTAL),
+        vol.Optional(CONF_ALIGN): vol.In(ALIGN_VERTICAL),
         vol.Optional("absolutePosition"): vol.Schema(
             {
                 vol.Required("x"): vol.All(vol.Coerce(int), vol.Range(min=0, max=21)),
@@ -68,12 +67,12 @@ SERVICE_MESSAGE_SCHEMA = vol.All(
         {
             vol.Required(CONF_DEVICE_ID): vol.All(cv.ensure_list, [cv.string]),
             vol.Optional(CONF_MESSAGE): cv.string,
+            vol.Optional(CONF_JUSTIFY, default=ALIGN_CENTER): vol.In(ALIGN_HORIZONTAL),
+            vol.Optional(CONF_ALIGN, default=ALIGN_CENTER): vol.In(ALIGN_VERTICAL),
+            vol.Optional(CONF_VBML): VBML_SCHEMA,
             vol.Optional(CONF_DURATION): vol.All(
                 vol.Coerce(int), vol.Range(min=10, max=7200)
             ),
-            vol.Optional(CONF_ALIGN, default=ALIGN_CENTER): vol.In(ALIGNS),
-            vol.Optional(CONF_VALIGN, default=VALIGN_MIDDLE): vol.In(VALIGNS),
-            vol.Optional(CONF_VBML): VBML_SCHEMA,
         },
     ),
     cv.has_at_least_one_key(CONF_MESSAGE, CONF_VBML),
@@ -102,10 +101,8 @@ def async_setup_services(hass: HomeAssistant) -> None:
             try:
                 rows = construct_message(**{CONF_MESSAGE: ""} | call.data)
             except ValueError:
-                align = call.data.get(CONF_VALIGN, ALIGN_CENTER).replace(
-                    VALIGN_MIDDLE, ALIGN_CENTER
-                )
-                justify = call.data.get(CONF_ALIGN, ALIGN_CENTER)
+                align = call.data.get(CONF_ALIGN, ALIGN_CENTER)
+                justify = call.data.get(CONF_JUSTIFY, ALIGN_CENTER)
                 message = {
                     "style": {CONF_ALIGN: align, CONF_JUSTIFY: justify},
                     "template": call.data.get(CONF_MESSAGE, ""),
@@ -120,12 +117,19 @@ def async_setup_services(hass: HomeAssistant) -> None:
             if coordinator.quiet_hours():
                 continue
 
-            if duration := call.data.get(CONF_DURATION):  # This is an alert
-                coordinator.alert_expiration = dt_now() + timedelta(seconds=duration)
+            if duration := call.data.get(CONF_DURATION):  # This is a temporary message
+                if coordinator._cancel_cb:
+                    coordinator._cancel_cb()
+                expiration = dt_now() + timedelta(seconds=duration)
+                coordinator.temporary_message_expiration = expiration
                 await coordinator.write_and_update_state(rows)
+                coordinator._cancel_cb = async_track_point_in_time(
+                    hass, coordinator._handle_temporary_message_expiration, expiration
+                )
             else:
                 coordinator.persistent_message = rows
-                if not ((alert := coordinator.alert_expiration) and alert > dt_now()):
+                expiration = coordinator.temporary_message_expiration
+                if not (expiration and expiration > dt_now()):
                     await coordinator.write_and_update_state(rows)
 
     hass.services.async_register(

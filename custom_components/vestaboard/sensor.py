@@ -44,11 +44,11 @@ SENSORS = (
         value_fn=lambda coor: coor.message,
     ),
     VestaboardSensorEntityDescription(
-        key="alert_expiration",
-        translation_key="alert_expiration",
+        key="temporary_message_expiration",
+        translation_key="temporary_message_expiration",
         device_class=SensorDeviceClass.TIMESTAMP,
         entity_category=EntityCategory.DIAGNOSTIC,
-        value_fn=lambda coor: coor.alert_expiration,
+        value_fn=lambda coor: coor.temporary_message_expiration,
     ),
 )
 
