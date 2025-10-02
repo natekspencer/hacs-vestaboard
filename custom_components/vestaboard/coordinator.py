@@ -9,7 +9,7 @@ from typing import Any
 import async_timeout
 from vesta import LocalClient
 
-from homeassistant.core import HomeAssistant
+from homeassistant.core import CALLBACK_TYPE, HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 import homeassistant.util.dt as dt_util
@@ -28,7 +28,8 @@ class VestaboardCoordinator(DataUpdateCoordinator):
     message: str | None
     svg: bytes | None
     persistent_message: list[list[int]] | None = None
-    alert_expiration: datetime | None = None
+    temporary_message_expiration: datetime | None = None
+    _cancel_cb: CALLBACK_TYPE | None = None
 
     _read_errors: int = 0
 
@@ -72,13 +73,6 @@ class VestaboardCoordinator(DataUpdateCoordinator):
 
     async def _async_update_data(self):
         """Fetch data from Vestaboard."""
-        if self.alert_expiration and dt_util.now() >= self.alert_expiration:
-            _LOGGER.debug("Vestaboard alert expired, reverting to persistent message")
-            self.alert_expiration = None
-            if rows := self.persistent_message:
-                await self.write_and_update_state(rows)
-                return rows
-
         try:
             async with async_timeout.timeout(10):
                 data = await self.hass.async_add_executor_job(
@@ -103,3 +97,16 @@ class VestaboardCoordinator(DataUpdateCoordinator):
         )
         # Manually update coordinator state for instant UI feedback
         self.async_set_updated_data(self.process_data(message_rows))
+
+    async def _handle_temporary_message_expiration(self, now: datetime) -> None:
+        """Handle temporary message expiration."""
+        _LOGGER.debug(
+            "Vestaboard temporary message expired @ %s, reverting to persistent message",
+            now,
+        )
+        self.temporary_message_expiration = None
+        if rows := self.persistent_message:
+            await self.write_and_update_state(rows)
+        if self._cancel_cb:
+            self._cancel_cb()
+            self._cancel_cb = None

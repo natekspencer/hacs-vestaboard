@@ -12,9 +12,8 @@ from .const import DOMAIN
 from .coordinator import VestaboardCoordinator
 from .entity import VestaboardEntity
 
-CLEAR_ALERT = ButtonEntityDescription(
-    key="clear_alert",
-    translation_key="clear_alert",
+CLEAR_TEMPORARY_MESSAGE = ButtonEntityDescription(
+    key="clear_temporary_message", translation_key="clear_temporary_message"
 )
 
 
@@ -23,7 +22,9 @@ async def async_setup_entry(
 ) -> None:
     """Set up Vestaboard binary sensors using config entry."""
     coordinator: VestaboardCoordinator = hass.data[DOMAIN][entry.entry_id]
-    async_add_entities([VestaboardButtonEntity(coordinator, entry, CLEAR_ALERT)])
+    async_add_entities(
+        [VestaboardButtonEntity(coordinator, entry, CLEAR_TEMPORARY_MESSAGE)]
+    )
 
 
 class VestaboardButtonEntity(VestaboardEntity, ButtonEntity):
@@ -31,6 +32,6 @@ class VestaboardButtonEntity(VestaboardEntity, ButtonEntity):
 
     async def async_press(self) -> None:
         """Press the button."""
-        if (alert := self.coordinator.alert_expiration) and alert > (now := dt_now()):
-            self.coordinator.alert_expiration = now
-            await self.async_update()
+        expiration = self.coordinator.temporary_message_expiration
+        if expiration and expiration > (now := dt_now()):
+            await self.coordinator._handle_temporary_message_expiration(now)

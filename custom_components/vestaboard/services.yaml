@@ -19,35 +19,29 @@ message:
         text:
           multiline: true
       example: This is a message
-    duration:
-      name: Alert Duration
-      description: "Display the message as a temporary alert. The board will revert to its previous persistent message after the duration expires. Duration is in seconds."
-      required: false
-      default: 300
-      selector:
-        number:
-          min: 10
-          max: 7200
-          unit_of_measurement: "seconds"
-    align:
-      name: Align
+    justify:
+      name: Justify
       description: Horizontal alignment of text. Optional, default=center
       selector:
         select:
+          translation_key: "justify"
           options:
             - "left"
-            - "center"
             - "right"
+            - "center"
+            - "justified"
       example: left
-    valign:
-      name: Valign
-      description: Vertical alignment of text. Optional, default=middle
+    align:
+      name: Align
+      description: Vertical alignment of text. Optional, default=center
       selector:
         select:
+          translation_key: "align"
           options:
             - "top"
-            - "middle"
             - "bottom"
+            - "center"
+            - "justified"
       example: top
     vbml:
       name: Vestaboard markup language
@@ -56,3 +50,13 @@ message:
       selector:
         text:
       example: '{ "props": { "hours": "07", "minutes": "35" }, "components": [ { "style": { "justify": "center", "align": "center" }, "template": "{{ ''{{hours}}:{{minutes}}'' }}"}]}'
+    duration:
+      name: Duration
+      description: "Display the message temporarily. The board will revert to its previous persistent message after the duration (in seconds) expires."
+      required: false
+      default: 300
+      selector:
+        number:
+          min: 10
+          max: 7200
+          unit_of_measurement: "seconds"

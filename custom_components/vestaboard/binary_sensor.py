@@ -23,12 +23,14 @@ async def async_setup_entry(
 ) -> None:
     """Set up Vestaboard binary sensors using config entry."""
     coordinator: VestaboardCoordinator = hass.data[DOMAIN][entry.entry_id]
-    async_add_entities([VestaboardBinarySensorEntity(coordinator, entry, ALERT)])
+    async_add_entities(
+        [VestaboardBinarySensorEntity(coordinator, entry, TEMPORARY_MESSAGE)]
+    )
 
 
-ALERT = BinarySensorEntityDescription(
-    key="alert",
-    translation_key="alert",
+TEMPORARY_MESSAGE = BinarySensorEntityDescription(
+    key="temporary_message",
+    translation_key="temporary_message",
     device_class=BinarySensorDeviceClass.RUNNING,
     entity_category=EntityCategory.DIAGNOSTIC,
 )
@@ -40,4 +42,5 @@ class VestaboardBinarySensorEntity(VestaboardEntity, BinarySensorEntity):
     @property
     def is_on(self) -> bool:
         """Return true if the binary sensor is on."""
-        return (alert := self.coordinator.alert_expiration) and alert > dt_now()
+        expiration = self.coordinator.temporary_message_expiration
+        return expiration and expiration > dt_now()

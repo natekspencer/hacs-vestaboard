@@ -13,12 +13,12 @@ from homeassistant.util.ssl import get_default_context
 
 from .const import (
     ALIGN_CENTER,
+    ALIGN_JUSTIFIED,
     CONF_ALIGN,
     CONF_ENABLEMENT_TOKEN,
-    CONF_VALIGN,
+    CONF_JUSTIFY,
     DOMAIN,
     MODEL_BLACK,
-    VALIGN_MIDDLE,
 )
 
 if TYPE_CHECKING:
@@ -43,8 +43,12 @@ EMOJI_MAP = {
 def construct_message(message: str, **kwargs: Any) -> list[list[int]]:
     """Construct a message."""
     message = "".join(EMOJI_MAP.get(char, char) for char in message)
-    align = kwargs.get(CONF_ALIGN, ALIGN_CENTER)
-    valign = kwargs.get(CONF_VALIGN, VALIGN_MIDDLE)
+    align = kwargs.get(CONF_JUSTIFY, ALIGN_CENTER)
+    if align in (ALIGN_JUSTIFIED):
+        align = ALIGN_CENTER
+    valign = kwargs.get(CONF_ALIGN, ALIGN_CENTER)
+    if valign in (ALIGN_CENTER, ALIGN_JUSTIFIED):
+        valign = "middle"
     return encode_text(message, align=align, valign=valign)
 
 

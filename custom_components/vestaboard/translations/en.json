@@ -45,22 +45,46 @@
   },
   "entity": {
     "binary_sensor": {
-      "alert": {
-        "name": "Alert"
+      "temporary_message": {
+        "name": "Temporary message"
       }
     },
     "button": {
-      "clear_alert": {
-        "name": "Clear alert"
+      "clear_temporary_message": {
+        "name": "Clear temporary message"
       }
     },
     "sensor": {
-      "alert_expiration": {
-        "name": "Alert expiration"
+      "temporary_message_expiration": {
+        "name": "Temporary message expiration"
       },
       "message": {
         "name": "Message"
       }
+    }
+  },
+  "selector": {
+    "align": {
+      "options": {
+        "top": "Top",
+        "bottom": "Bottom",
+        "center": "Center",
+        "justified": "Justified"
+      }
+    },
+    "justify": {
+      "options": {
+        "left": "Left",
+        "right": "Right",
+        "center": "Center",
+        "justified": "Justified"
+      }
+    }
+  },
+  "services": {
+    "message": {
+      "name": "Send message",
+      "description": "Send a message to a Vestaboard."
     }
   }
 }
