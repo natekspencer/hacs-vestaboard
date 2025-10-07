@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Callable
+from typing import Any, Callable, Mapping
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -62,3 +62,11 @@ class VestaboardSensorEntity(VestaboardEntity, SensorEntity):
     def native_value(self) -> str | None:
         """Return the value reported by the sensor."""
         return self.entity_description.value_fn(self.coordinator)
+
+    @property
+    def extra_state_attributes(self) -> Mapping[str, Any] | None:
+        """Return entity specific state attributes."""
+        if self.entity_description.key == "message" and (data := self.coordinator.data):
+            character_codes = "".join(f"{{{code}}}" for row in data for code in row)
+            return {"character_codes": character_codes}
+        return None
