@@ -74,8 +74,8 @@ def create_svg(data: list[list[int]], color: str = MODEL_BLACK) -> str:
     column_multiplier = 0.166
     for row, characters in enumerate(data):
         for column, code in enumerate(characters):
-            xpos = round(start + column * column_multiplier, 5)
-            ypos = round(start + row * row_multiplier, 5)
+            xpos = round(start + column * column_multiplier, 3)
+            ypos = round(start + row * row_multiplier, 3)
             if code in (c.value for c in Color):
                 svg += f'<rect class="char {Color(code).name.lower()}" x="{xpos}" y="{ypos}"/>'
             else:
