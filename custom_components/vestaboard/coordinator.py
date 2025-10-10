@@ -15,7 +15,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 import homeassistant.util.dt as dt_util
 
 from .const import CONF_MODEL, CONF_QUIET_END, CONF_QUIET_START, DOMAIN, MODEL_BLACK
-from .helpers import create_svg, decode
+from .helpers import create_png, decode
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -59,7 +59,7 @@ class VestaboardCoordinator(DataUpdateCoordinator):
         if data != self.data:
             self.last_updated = dt_util.now()
             self.message = decode(data)
-            self.svg = create_svg(data, self.model).encode()
+            self.image = create_png(data, self.model)
         return data
 
     def quiet_hours(self) -> bool:
