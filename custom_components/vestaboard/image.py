@@ -27,7 +27,7 @@ async def async_setup_entry(
 class VestaboardImageEntity(VestaboardEntity, ImageEntity):
     """Vestaboard image entity."""
 
-    _attr_content_type = "image/svg+xml"
+    _attr_content_type = "image/png"
 
     def __init__(
         self,
@@ -46,4 +46,4 @@ class VestaboardImageEntity(VestaboardEntity, ImageEntity):
 
     def image(self) -> bytes | None:
         """Return bytes of image."""
-        return self.coordinator.svg
+        return self.coordinator.image
