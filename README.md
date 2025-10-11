@@ -71,9 +71,9 @@ After this integration is set up, you can configure the model of your Vestaboard
 Models:
 
 - Flagship Black
-  ![Flagship Black Connected](images/connected.svg)
+  ![Flagship Black Connected](images/flagship.png)
 - Vestaboard White
-  ![Vestaboard White Connected](images/connected-white.svg)
+  ![Vestaboard White Connected](images/white.png)
 
 ---
 
