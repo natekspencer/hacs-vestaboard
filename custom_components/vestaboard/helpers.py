@@ -135,7 +135,7 @@ def create_png(
                 draw.text((cx, cy), char, fill=model.text_color, font=font, anchor="mm")
 
     # Logo text
-    logo_font = load_font(int(0.078 * scale))
+    logo_font = load_font(int(0.048 * scale))
     draw.text(
         (width / 2, scale * 1.64),
         "VESTABOARD",
