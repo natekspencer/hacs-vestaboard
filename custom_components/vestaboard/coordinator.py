@@ -26,7 +26,7 @@ class VestaboardCoordinator(DataUpdateCoordinator):
     data: list[list[int]] | None
     last_updated: datetime | None = None
     message: str | None
-    svg: bytes | None
+    image: bytes | None
     persistent_message: list[list[int]] | None = None
     temporary_message_expiration: datetime | None = None
     _cancel_cb: CALLBACK_TYPE | None = None
@@ -88,7 +88,7 @@ class VestaboardCoordinator(DataUpdateCoordinator):
         if self.persistent_message is None:
             self.persistent_message = data
 
-        return self.process_data(data)
+        return await self.hass.async_add_executor_job(self.process_data, data)
 
     async def write_and_update_state(self, message_rows: list[list[int]]) -> None:
         """Write to board and immediately update coordinator."""
