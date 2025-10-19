@@ -4,12 +4,11 @@ from __future__ import annotations
 
 import logging
 
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity import DeviceInfo, EntityDescription
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
-from .coordinator import VestaboardCoordinator
+from .coordinator import VestaboardConfigEntry, VestaboardCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -21,12 +20,11 @@ class VestaboardEntity(CoordinatorEntity[VestaboardCoordinator]):
 
     def __init__(
         self,
-        coordinator: VestaboardCoordinator,
-        entry: ConfigEntry,
+        entry: VestaboardConfigEntry,
         description: EntityDescription,
     ) -> None:
         """Construct a Vestaboard entity."""
-        super().__init__(coordinator)
+        super().__init__(entry.runtime_data)
         self.entity_description = description
         self._attr_unique_id = f"{entry.entry_id}-{description.key}"
 

@@ -5,23 +5,22 @@ from __future__ import annotations
 from datetime import datetime
 
 from homeassistant.components.image import ImageEntity, ImageEntityDescription
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN
-from .coordinator import VestaboardCoordinator
+from .coordinator import VestaboardConfigEntry
 from .entity import VestaboardEntity
 
 IMAGE = ImageEntityDescription(key="board", name=None)
 
 
 async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+    hass: HomeAssistant,
+    entry: VestaboardConfigEntry,
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Vestaboard camera using config entry."""
-    coordinator: VestaboardCoordinator = hass.data[DOMAIN][entry.entry_id]
-    async_add_entities([VestaboardImageEntity(coordinator, entry, IMAGE)])
+    async_add_entities([VestaboardImageEntity(entry, IMAGE)])
 
 
 class VestaboardImageEntity(VestaboardEntity, ImageEntity):
@@ -31,13 +30,12 @@ class VestaboardImageEntity(VestaboardEntity, ImageEntity):
 
     def __init__(
         self,
-        coordinator: VestaboardCoordinator,
-        entry_id: str,
+        entry: VestaboardConfigEntry,
         description: ImageEntityDescription,
     ) -> None:
         """Initialize the entity."""
-        super().__init__(coordinator, entry_id, description)
-        ImageEntity.__init__(self, coordinator.hass)
+        super().__init__(entry, description)
+        ImageEntity.__init__(self, entry.runtime_data.hass)
 
     @property
     def image_last_updated(self) -> datetime | None:
