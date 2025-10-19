@@ -44,20 +44,20 @@ async def async_setup_entry(hass: HomeAssistant, entry: VestaboardConfigEntry) -
 
     entry.runtime_data = coordinator
 
-    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
-
-    # Set up notify platform, no entry support for notify component yet,
-    # have to use discovery to load platform.
     hass.async_create_task(
         discovery.async_load_platform(
             hass,
             Platform.NOTIFY,
             DOMAIN,
-            {CONF_NAME: entry.title, "entry_id": entry.entry_id},
+            {CONF_NAME: entry.title, "coordinator": coordinator},
             hass.data[DOMAIN][DATA_HASS_CONFIG],
         )
     )
+
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+
     entry.async_on_unload(entry.add_update_listener(update_listener))
+
     return True
 
 
