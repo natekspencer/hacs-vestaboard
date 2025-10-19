@@ -4,9 +4,13 @@ from __future__ import annotations
 
 from typing import Any
 
-
-from homeassistant.components.notify import ATTR_DATA, BaseNotificationService
+from homeassistant.components.notify import (
+    ATTR_DATA,
+    DOMAIN as NOTIFY_DOMAIN,
+    BaseNotificationService,
+)
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 
 from .const import DOMAIN
@@ -20,21 +24,29 @@ async def async_get_service(
     discovery_info: DiscoveryInfoType | None = None,
 ) -> VestaboardNotificationService | None:
     """Get the Vestaboard notification service."""
-    if discovery_info is None:
-        return None
-    coordinator: VestaboardCoordinator = hass.data[DOMAIN][discovery_info["entry_id"]]
-    return VestaboardNotificationService(coordinator)
+    return VestaboardNotificationService(discovery_info) if discovery_info else None
 
 
 class VestaboardNotificationService(BaseNotificationService):
     """Implement the notification service for Vestaboard."""
 
-    def __init__(self, coordinator: VestaboardCoordinator) -> None:
+    def __init__(self, config: dict[str, Any]) -> None:
         """Initialize the service."""
-        self.coordinator = coordinator
+        self.coordinator: VestaboardCoordinator = config["coordinator"]
 
-    def send_message(self, message: str = "", **kwargs: Any) -> None:
+    def send_message(self, message: str, **kwargs: Any) -> None:
         """Send a message to a Vestaboard."""
+        ir.create_issue(
+            self.hass,
+            DOMAIN,
+            f"deprecated_{NOTIFY_DOMAIN}_{DOMAIN}_{self._service_name}",
+            is_fixable=False,
+            issue_domain=DOMAIN,
+            severity=ir.IssueSeverity.WARNING,
+            translation_key=f"deprecated_{NOTIFY_DOMAIN}_{DOMAIN}",
+            translation_placeholders={"action_name": self._service_name},
+        )
+
         if self.coordinator.quiet_hours():
             return
 

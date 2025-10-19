@@ -4,11 +4,11 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta
 import logging
-from typing import Any
 
 import async_timeout
 from vesta import LocalClient
 
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
@@ -19,9 +19,13 @@ from .helpers import create_png, decode
 
 _LOGGER = logging.getLogger(__name__)
 
+type VestaboardConfigEntry = ConfigEntry[VestaboardCoordinator]
+
 
 class VestaboardCoordinator(DataUpdateCoordinator):
     """Vestaboard data update coordinator."""
+
+    config_entry: VestaboardConfigEntry
 
     data: list[list[int]] | None
     last_updated: datetime | None = None
@@ -36,18 +40,22 @@ class VestaboardCoordinator(DataUpdateCoordinator):
     def __init__(
         self,
         hass: HomeAssistant,
+        config_entry: VestaboardConfigEntry,
         vestaboard: LocalClient,
-        options: dict[str, Any],
     ) -> None:
         """Initialize."""
         super().__init__(
-            hass, _LOGGER, name=DOMAIN, update_interval=timedelta(seconds=15)
+            hass,
+            _LOGGER,
+            config_entry=config_entry,
+            name=DOMAIN,
+            update_interval=timedelta(seconds=15),
         )
         self.vestaboard = vestaboard
 
-        self.model = options.get(CONF_MODEL, MODEL_BLACK)
-        if (start := options.get(CONF_QUIET_START)) != (
-            end := options.get(CONF_QUIET_END)
+        self.model = config_entry.options.get(CONF_MODEL, MODEL_BLACK)
+        if (start := config_entry.options.get(CONF_QUIET_START)) != (
+            end := config_entry.options.get(CONF_QUIET_END)
         ):
             self.quiet_start = dt_util.parse_time(start)
             self.quiet_end = dt_util.parse_time(end)

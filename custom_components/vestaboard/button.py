@@ -3,14 +3,11 @@
 from __future__ import annotations
 
 from homeassistant.components.button import ButtonEntity, ButtonEntityDescription
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util.dt import now as dt_now
 
-from .const import DOMAIN
-from .coordinator import VestaboardCoordinator
-from .entity import VestaboardEntity
+from .entity import VestaboardConfigEntry, VestaboardEntity
 
 CLEAR_TEMPORARY_MESSAGE = ButtonEntityDescription(
     key="clear_temporary_message", translation_key="clear_temporary_message"
@@ -18,13 +15,12 @@ CLEAR_TEMPORARY_MESSAGE = ButtonEntityDescription(
 
 
 async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+    hass: HomeAssistant,
+    entry: VestaboardConfigEntry,
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Vestaboard binary sensors using config entry."""
-    coordinator: VestaboardCoordinator = hass.data[DOMAIN][entry.entry_id]
-    async_add_entities(
-        [VestaboardButtonEntity(coordinator, entry, CLEAR_TEMPORARY_MESSAGE)]
-    )
+    async_add_entities([VestaboardButtonEntity(entry, CLEAR_TEMPORARY_MESSAGE)])
 
 
 class VestaboardButtonEntity(VestaboardEntity, ButtonEntity):
