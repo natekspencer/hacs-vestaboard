@@ -150,8 +150,8 @@ class VestaboardConfigFlow(ConfigFlow, domain=DOMAIN):
                 errors["base"] = "invalid_api_key"
             else:
                 if write:
-                    client.write_message(
-                        construct_message(
+                    json = {
+                        "characters": construct_message(
                             "\n".join(
                                 [
                                     "{63}{63}{63}{63}{63}{63}{64}{64}{64}{64}{64}{64}{64}{64}{64}{65}{65}{65}{65}{65}{65}{65}",
@@ -163,7 +163,8 @@ class VestaboardConfigFlow(ConfigFlow, domain=DOMAIN):
                                 ]
                             )
                         )
-                    )
+                    }
+                    client.write_message(json)
                 self.api_key = client.api_key
         except asyncio.TimeoutError:
             errors["base"] = "timeout_connect"
