@@ -109,7 +109,7 @@ class VestaboardCoordinator(DataUpdateCoordinator):
         if data is None:
             raise ConfigEntryAuthFailed
 
-        if self.persistent_message is None:
+        if self.temporary_message_expiration is None:
             self.persistent_message = data
 
         return await self.hass.async_add_executor_job(self.process_data, data)
